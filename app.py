@@ -16,7 +16,8 @@ except:
 
 # মেইন ফাংশন (যা ছবি পরীক্ষা করবে)
 def check_image(img):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
     prompt = """
     এই ছবিটি খুব ভালো করে পরীক্ষা করো। এটি কি আসল ক্যামেরা দিয়ে তোলা নাকি এআই (AI) দিয়ে বানানো? 
     একটি কনফিডেন্স পারসেন্টেজ (%) দাও এবং ৩টি যুক্তি দাও কেন তোমার এমন মনে হচ্ছে। 
