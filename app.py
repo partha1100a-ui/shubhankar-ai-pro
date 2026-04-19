@@ -21,7 +21,7 @@ except Exception as e:
 def check_image(img):
     try:
         # আমরা এখানে সবথেকে স্টেবল মডেলটি ব্যবহার করছি
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro-vision')
         prompt = "Analyze this image. Is it a real photograph or AI-generated? Give reasons in Bengali."
         response = model.generate_content([prompt, img])
         return response.text
