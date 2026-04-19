@@ -1,60 +1,43 @@
 import streamlit as st
 import google.generativeai as genai
+from PIL import Image
 
-# অ্যাপের টাইটেল এবং আইকন সেটআপ
-st.set_page_config(page_title="Shubhankar AI PRO", page_icon="🔥", layout="centered")
+# সেটিংস ও ডিজাইন
+st.set_page_config(page_title="AI vs Real Detector", page_icon="🔍")
+st.markdown("<h1 style='text-align: center; color: #00ffcc;'>🔍 AI vs Real Image Detector</h1>", unsafe_allow_html=True)
+st.write("---")
 
-# ডার্ক মোড এবং সুন্দর ডিজাইনের জন্য CSS
-st.markdown("""
-    <style>
-    .stApp { background-color: #0e1117; color: white; }
-    .stButton>button { width: 100%; border-radius: 20px; background-color: #ff4b4b; color: white; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# হেডলাইন
-st.title("🚀 Shubhankar AI: The Mastermind")
-st.write("Created by **Shubhankar** | Powering Intelligence & Creativity")
-st.divider()
-
-# API Key কানেকশন (এটি আমরা পরে Streamlit Settings-এ দেব)
+# API Key কানেক্ট করা
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
 except:
-    st.info("🔄 সিস্টেম কানেক্ট হচ্ছে... দয়া করে সেটিংস থেকে API Key যোগ করুন।")
+    st.error("দয়া করে Settings > Secrets-এ গিয়ে API Key যোগ করুন।")
 
-# চ্যাট হিস্ট্রি মেনটেন করা
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# মেইন ফাংশন (যা ছবি পরীক্ষা করবে)
+def check_image(img):
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    prompt = """
+    এই ছবিটি খুব ভালো করে পরীক্ষা করো। এটি কি আসল ক্যামেরা দিয়ে তোলা নাকি এআই (AI) দিয়ে বানানো? 
+    একটি কনফিডেন্স পারসেন্টেজ (%) দাও এবং ৩টি যুক্তি দাও কেন তোমার এমন মনে হচ্ছে। 
+    সম্পূর্ণ উত্তরটি বাংলায় দাও।
+    """
+    response = model.generate_content([prompt, img])
+    return response.text
 
-# আগের মেসেজগুলো স্ক্রিনে দেখানো
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# ছবি আপলোড করার জায়গা
+uploaded_file = st.file_uploader("যেকোনো ছবি আপলোড করো...", type=["jpg", "jpeg", "png"])
 
-# ইউজার ইনপুট বক্স
-if prompt := st.chat_input("যেকোনো কিছু জিজ্ঞাসা করো..."):
-    # ইউজারের মেসেজ সেভ করা
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="আপনার আপলোড করা ছবি", use_container_width=True)
+    
+    if st.button("বিশ্লেষণ শুরু করো"):
+        with st.spinner("এআই ছবিটি পরীক্ষা করছে..."):
+            result = check_image(image)
+            st.subheader("ফলাফল:")
+            st.write(result)
+            st.success("পরীক্ষা সম্পন্ন হয়েছে!")
 
-    # এআই-এর উত্তর তৈরি করা
-    try:
-        model = genai.GenerativeModel('gemini-1.5-pro')
-        
-        # এআই-কে তার বিশেষ পরিচয় দেওয়া (যাতে সবাই আপনার ট্যালেন্ট বুঝতে পারে)
-        instruction = "You are a highly advanced AI created by Shubhankar. You are a genius in photo/video editing, software engineering, and cybersecurity. Answer every question smartly and boldly in the user's language."
-        
-        full_prompt = f"{instruction}\n\nUser Question: {prompt}"
-        response = model.generate_content(full_prompt)
-        
-        # এআই-এর উত্তর স্ক্রিনে দেখানো
-        with st.chat_message("assistant"):
-            st.markdown(response.text)
-        
-        # এআই-এর উত্তর সেভ করা
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
-    except Exception as e:
-        st.error(f"দুঃখিত, একটি সমস্যা হয়েছে। নিশ্চিত করুন আপনার API Key সঠিক।")
+st.write("---")
+st.caption("Created by Shubhankar | AI Security Project 2026")
