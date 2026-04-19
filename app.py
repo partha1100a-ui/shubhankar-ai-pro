@@ -7,39 +7,42 @@ st.set_page_config(page_title="AI vs Real Detector", page_icon="🔍")
 st.markdown("<h1 style='text-align: center; color: #00ffcc;'>🔍 AI vs Real Image Detector</h1>", unsafe_allow_html=True)
 st.write("---")
 
-# API Key কানেক্ট করা
+# API Key কানেক্ট করার নিরাপদ পদ্ধতি
 try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-    genai.configure(api_key=api_key)
-except:
-    st.error("দয়া করে Settings > Secrets-এ গিয়ে API Key যোগ করুন।")
+    if "GOOGLE_API_KEY" in st.secrets:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        genai.configure(api_key=api_key)
+    else:
+        st.error("Secrets-এ 'GOOGLE_API_KEY' খুঁজে পাওয়া যায়নি।")
+except Exception as e:
+    st.error(f"API কানেকশনে সমস্যা: {e}")
 
-# মেইন ফাংশন (যা ছবি পরীক্ষা করবে)
+# মেইন ফাংশন
 def check_image(img):
-    # এটি ছবি চেনার জন্য সবথেকে নির্ভরযোগ্য মডেল
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+    try:
+        # আমরা এখানে সবথেকে স্টেবল মডেলটি ব্যবহার করছি
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = "Analyze this image. Is it a real photograph or AI-generated? Give reasons in Bengali."
+        response = model.generate_content([prompt, img])
+        return response.text
+    except Exception as e:
+        return f"দুঃখিত, একটি সমস্যা হয়েছে: {str(e)}"
 
-    prompt = """
-    এই ছবিটি খুব ভালো করে পরীক্ষা করো। এটি কি আসল ক্যামেরা দিয়ে তোলা নাকি এআই (AI) দিয়ে বানানো? 
-    একটি কনফিডেন্স পারসেন্টেজ (%) দাও এবং ৩টি যুক্তি দাও কেন তোমার এমন মনে হচ্ছে। 
-    সম্পূর্ণ উত্তরটি বাংলায় দাও।
-    """
-    response = model.generate_content([prompt, img])
-    return response.text
-
-# ছবি আপলোড করার জায়গা
+# ইউজার ইন্টারফেস
 uploaded_file = st.file_uploader("যেকোনো ছবি আপলোড করো...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="আপনার আপলোড করা ছবি", use_container_width=True)
-    
-    if st.button("বিশ্লেষণ শুরু করো"):
-        with st.spinner("এআই ছবিটি পরীক্ষা করছে..."):
-            result = check_image(image)
-            st.subheader("ফলাফল:")
-            st.write(result)
-            st.success("পরীক্ষা সম্পন্ন হয়েছে!")
+    try:
+        image = Image.open(uploaded_file)
+        st.image(image, caption="আপনার আপলোড করা ছবি", use_container_width=True)
+        
+        if st.button("বিশ্লেষণ শুরু করো"):
+            with st.spinner("এআই ছবিটি পরীক্ষা করছে..."):
+                result = check_image(image)
+                st.subheader("ফলাফল:")
+                st.write(result)
+    except Exception as e:
+        st.error(f"ছবি প্রসেস করতে সমস্যা হয়েছে: {e}")
 
 st.write("---")
-st.caption("Created by Shubhankar | AI Security Project 2026")
+st.caption("Created by Shubhankar | Cyber Security Student")
