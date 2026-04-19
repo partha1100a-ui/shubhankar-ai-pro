@@ -19,7 +19,17 @@ def analyze_image(img):
         model = genai.GenerativeModel(model_name="gemini-1.5-flash")
         
         # যদি উপরেরটা কাজ না করে, তবে নিচের এই ব্যাকআপ পদ্ধতিটি ট্রাই করবে
-        prompt = "Is this photo real or AI generated? Answer in Bengali."
+        prompt = """
+Analyze this image as a forensic expert. Your goal is to detect if it is AI-generated or a real human photograph.
+Check for the following AI artifacts:
+1. Strange textures or unnatural smoothness on skin and clothes.
+2. Background inconsistencies or blurred objects that shouldn't be blurred.
+3. Errors in lighting, shadows, or reflections.
+4. Distortions in small details like eyes, teeth, or background text.
+
+Provide the final verdict in Bengali. If it is AI-generated, explain the specific reasons.
+"""
+ generated? Answer in Bengali and English."
         response = model.generate_content([prompt, img])
         return response.text
     except Exception as e:
