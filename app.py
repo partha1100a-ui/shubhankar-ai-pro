@@ -20,8 +20,11 @@ except Exception as e:
 # মেইন ফাংশন
 def check_image(img):
     try:
-        # আমরা এখানে সবথেকে স্টেবল মডেলটি ব্যবহার করছি
-        model = genai.GenerativeModel('gemini-pro-vision')
+        # এই পদ্ধতিতে মডেল লোড করলে 404 আসার ভয় থাকে না
+model = genai.GenerativeModel(
+    model_name="models/gemini-1.5-flash"
+)
+
         prompt = "Analyze this image. Is it a real photograph or AI-generated? Give reasons in Bengali."
         response = model.generate_content([prompt, img])
         return response.text
