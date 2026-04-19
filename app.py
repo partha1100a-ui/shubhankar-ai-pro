@@ -2,41 +2,43 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
+# ১. পেজ সেটআপ
 st.set_page_config(page_title="AI vs Real Detector")
 st.title("🔍 AI vs Real Image Detector")
 
-# এপিআই কি কানেক্ট করা
+# ২. এপিআই কি কানেক্ট করা
 if "GOOGLE_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+else:
+    st.error("API Key খুঁজে পাওয়া যায়নি।")
 
 def analyze_image(img):
     try:
-        # আমরা কোনো নাম দেব না, সিস্টেমকে বলব ছবি চেনার যোগ্য মডেল খুঁজে নিতে
-        model_list = [m for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        # এখানে আমরা নির্দিষ্ট কোনো নাম না দিয়ে এপিআই-কে বলব মডেল খুঁজে দিতে
+        # এটি গুগলের সবথেকে লেটেস্ট এবং সেফ মেথড
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
         
-        # সবথেকে লেটেস্ট মডেলটি বেছে নেবে যা ৪-০-৪ দেবে না
-        final_model_name = ""
-        for m in model_list:
-            if "1.5-flash" in m.name:
-                final_model_name = m.name
-                break
-        
-        if not final_model_name:
-            final_model_name = "models/gemini-pro-vision" # ব্যাকআপ
-
-        model = genai.GenerativeModel(final_model_name)
-        response = model.generate_content(["এটি কি এআই দিয়ে তৈরি নাকি আসল ছবি? কারণসহ বাংলায় উত্তর দাও।", img])
+        # যদি উপরেরটা কাজ না করে, তবে নিচের এই ব্যাকআপ পদ্ধতিটি ট্রাই করবে
+        prompt = "Is this photo real or AI generated? Answer in Bengali."
+        response = model.generate_content([prompt, img])
         return response.text
     except Exception as e:
-        return f"দুঃখিত, গুগল সার্ভার থেকে এই সমস্যাটি হচ্ছে: {str(e)}"
+        # যদি স্টিল এরর আসে, তবে এটি সরাসরি গুগলের বর্তমান অ্যাভেলেবল মডেল খুঁজবে
+        try:
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            model = genai.GenerativeModel(model_name=available_models[0])
+            response = model.generate_content(["এটি কি আসল ছবি না এআই? বাংলায় বলো", img])
+            return response.text
+        except:
+            return f"Error Details: {str(e)}"
 
-# ইউজার ইন্টারফেস
+# ৩. ইউজার ইন্টারফেস
 file = st.file_uploader("ছবি আপলোড করুন", type=["jpg", "png", "jpeg"])
 
 if file:
-    img = Image.open(file)
-    st.image(img, use_container_width=True)
+    image = Image.open(file)
+    st.image(image, use_container_width=True)
     if st.button("বিশ্লেষণ শুরু করো"):
-        with st.spinner("এআই পরীক্ষা করছে..."):
-            result = analyze_image(img)
+        with st.spinner("এআই ছবিটি পরীক্ষা করছে..."):
+            result = analyze_image(image)
             st.write(result)
