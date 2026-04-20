@@ -1,54 +1,97 @@
 import streamlit as st
 import google.generativeai as genai
-from PIL import Image
 
-# ১. পেজ সেটআপ
-st.set_page_config(page_title="AI vs Real Detector")
-st.title("🔍 AI vs Real Image Detector")
+# ১. প্রিমিয়াম ডার্ক ও মডার্ন ইউজার ইন্টারফেস
+st.set_page_config(page_title="VITS-ULTIMATE AI", page_icon="🧠", layout="centered")
 
-# ২. এপিআই কি কানেক্ট করা
+st.markdown("""
+    <style>
+    .main { 
+        background: linear-gradient(135deg, #020111 0%, #050a30 100%); 
+        color: #00f2ff; 
+    }
+    .stTextInput>div>div>input { 
+        background-color: #001220 !important; 
+        color: #00f2ff !important; 
+        border: 2px solid #00f2ff !important; 
+        border-radius: 15px;
+    }
+    .stButton>button { 
+        background: linear-gradient(45deg, #00f2ff, #0072ff); 
+        color: white; 
+        border-radius: 25px; 
+        border: none; 
+        font-weight: bold;
+        box-shadow: 0 0 15px #00f2ff;
+    }
+    .chat-card {
+        background: rgba(0, 242, 255, 0.05);
+        border: 1px solid #00f2ff;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ২. ডিপি বা ওয়ালপেপার লজিক
+st.markdown("<h1 style='text-align: center; color: #00f2ff; text-shadow: 0 0 20px #00f2ff;'>🧠 UNIVERSAL AI</h1>", unsafe_allow_html=True)
+st.caption("<p style='text-align: center; color: #aaa;'>The World's Most Powerful Knowledge Engine</p>", unsafe_allow_html=True)
+
+# ৩. এপিআই ও সিস্টেম ইন্সট্রাকশন (তোমার নাম সেট করা)
 if "GOOGLE_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 else:
-    st.error("API Key খুঁজে পাওয়া যায়নি।")
+    st.error("Secrets-এ আপনার API Key যোগ করুন।")
 
-def analyze_image(img):
-    try:
-        # এখানে আমরা নির্দিষ্ট কোনো নাম না দিয়ে এপিআই-কে বলব মডেল খুঁজে দিতে
-        # এটি গুগলের সবথেকে লেটেস্ট এবং সেফ মেথড
-        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
-        
-        # যদি উপরেরটা কাজ না করে, তবে নিচের এই ব্যাকআপ পদ্ধতিটি ট্রাই করবে
-        prompt = """
-Analyze this image as a forensic expert. Your goal is to detect if it is AI-generated or a real human photograph.
-Check for the following AI artifacts:
-1. Strange textures or unnatural smoothness on skin and clothes.
-2. Background inconsistencies or blurred objects that shouldn't be blurred.
-3. Errors in lighting, shadows, or reflections.
-4. Distortions in small details like eyes, teeth, or background text.
-
-Provide the final verdict in Bengali. If it is AI-generated, explain the specific reasons.
+# এআই-কে নির্দেশ দেওয়া হচ্ছে সে কে এবং তার স্রষ্টা কে
+SYSTEM_INSTRUCTION = """
+You are 'Universal AI', the world's most intelligent and accurate AI assistant. 
+Your creator is Shubhankar (শুভঙ্কর). 
+If anyone asks who made you or who is your developer, you must proudly answer: "এই অ্যাপটি শুভঙ্কর (Shubhankar) বানিয়েছে।" 
+You can speak every language in the world perfectly. 
+Your answers must be 100% accurate, detailed, and helpful. 
+There is no question in the world that you don't know the answer to.
 """
- generated? Answer in Bengali and English."
-        response = model.generate_content([prompt, img])
-        return response.text
-    except Exception as e:
-        # যদি স্টিল এরর আসে, তবে এটি সরাসরি গুগলের বর্তমান অ্যাভেলেবল মডেল খুঁজবে
-        try:
-            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-            model = genai.GenerativeModel(model_name=available_models[0])
-            response = model.generate_content(["এটি কি আসল ছবি না এআই? বাংলায় বলো", img])
-            return response.text
-        except:
-            return f"Error Details: {str(e)}"
 
-# ৩. ইউজার ইন্টারফেস
-file = st.file_uploader("ছবি আপলোড করুন", type=["jpg", "png", "jpeg"])
+# ৪. চ্যাট হিস্ট্রি
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-if file:
-    image = Image.open(file)
-    st.image(image, use_container_width=True)
-    if st.button("বিশ্লেষণ শুরু করো"):
-        with st.spinner("এআই ছবিটি পরীক্ষা করছে..."):
-            result = analyze_image(image)
-            st.write(result)
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# ৫. প্রশ্ন ইনপুট ও উত্তর জেনারেশন
+prompt = st.chat_input("পৃথিবীর যেকোনো প্রশ্ন এখানে লিখুন...")
+
+if prompt:
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        with st.spinner("Analyzing Global Databases..."):
+            try:
+                # Gemini 1.5 Flash মডেল ব্যবহার
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                
+                # সিস্টেম ইন্সট্রাকশন সহ উত্তর তৈরি
+                full_prompt = f"{SYSTEM_INSTRUCTION}\n\nUser Question: {prompt}"
+                response = model.generate_content(full_prompt)
+                
+                answer = response.text
+                st.markdown(answer)
+                st.session_state.messages.append({"role": "assistant", "content": answer})
+            except Exception as e:
+                st.error("সার্ভার ওভারলোড। অনুগ্রহ করে ১ মিনিট পর আবার চেষ্টা করুন।")
+
+# সাইডবার
+st.sidebar.title("🛡️ Secure Core")
+st.sidebar.info("Admin: Shubhankar")
+if st.sidebar.button("Clear Memory"):
+    st.session_state.messages = []
+    st.rerun()
+
+st.write("---")
+st.caption("Developed by Shubhankar | VITS-LENS Intelligence Project 2026")
