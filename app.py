@@ -1,96 +1,84 @@
 import streamlit as st
 import google.generativeai as genai
-from PIL import Image
 
-# ১. জিমিনি স্টাইল সেটিংস (ক্লিন ও সিম্পল)
-st.set_page_config(page_title="Universal AI", page_icon="✨", layout="wide")
+# ১. জিমিনি অরিজিনাল লুক সেটআপ
+st.set_page_config(page_title="Gemini", page_icon="🌐", layout="wide")
 
-# সিএসএস দিয়ে জিমিনির মতো লুক তৈরি
+# তোমার দেওয়া এপিআই কি সরাসরি সেট করা হলো
+genai.configure(api_key="AIzaSyAlK9KDydACqvDM9iS3sr57RxuLbO-6PBw")
+
+# CSS দিয়ে জিমিনির মতো বাটন ও ইন্টারফেস তৈরি
 st.markdown("""
     <style>
-    .stApp { background-color: #ffffff; color: #000000; }
+    .stApp { background-color: #f8fafd; color: #1f1f1f; }
     
-    /* জিমিনি স্টাইল চ্যাট ইনপুট বক্স */
-    .stChatInputContainer {
-        border-radius: 50px !important;
-        border: 1px solid #e0e0e0 !important;
-        background-color: #f0f4f9 !important;
-    }
+    /* জিমিনি স্টাইল হেডার */
+    .header-text { font-family: 'Google Sans', sans-serif; font-size: 24px; color: #444746; text-align: center; margin-top: 20px; }
     
-    /* লোগো ও টাইটেল স্টাইল */
-    .logo-text {
-        font-family: 'Google Sans', sans-serif;
-        font-size: 30px;
-        font-weight: 500;
-        color: #1a73e8; /* নীল কালার */
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+    /* চ্যাট ইনপুট বক্সের বাটনগুলোর ডিজাইন */
+    .stChatInputContainer { border-radius: 28px !important; border: 1px solid #c4c7c5 !important; background-color: #ffffff !important; }
+    
+    /* নিচের বাটন প্যানেল জিমিনির মতো */
+    .button-container { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #ffffff; border-radius: 30px; margin-top: -60px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     </style>
     """, unsafe_allow_html=True)
 
-# ২. এপিআই কানেকশন (সহজ পদ্ধতি)
-if "GOOGLE_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-else:
-    st.error("Secrets-এ GOOGLE_API_KEY যোগ করো।")
+# ২. মেইন স্ক্রিন টাইটেল (স্ক্রিনশট ৪ অনুযায়ী)
+st.markdown("<div class='header-text'>Gemini</div>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align:center; font-weight:400; margin-top:50px;'>Hi Shubhankar</h2>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; font-weight:500; margin-top:-10px; color:#444746;'>Where should we start?</h1>", unsafe_allow_html=True)
 
-# ৩. সাইডবার (শুধু নতুন চ্যাট অপশন)
+# চ্যাট হিস্ট্রি রাখার জন্য সেশন স্টেট
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-with st.sidebar:
-    st.markdown("<h2 style='color:#1a73e8;'>Universal AI</h2>", unsafe_allow_html=True)
-    if st.button("➕ New Chat", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-
-# ৪. মেইন স্ক্রিন (নীল স্টারের লোগো ও নাম)
-# এখানে জিমিনির স্টারের বদলে তোমার জন্য একটি সুন্দর নীল স্টারের লোগো দেওয়া হয়েছে
-st.markdown("""
-    <div class='logo-text'>
-        <span style='font-size: 40px;'>💠</span> Universal AI
-    </div>
-    <p style='color: #5f6368; font-size: 18px;'>How can I help you today?</p>
-    """, unsafe_allow_html=True)
-
-# ৫. চ্যাট হিস্ট্রি দেখানো
+# চ্যাট মেসেজগুলো দেখানো
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৬. প্লাস বাটন ও চ্যাট ইনপুট (একদম সিম্পল)
-# জিমিনির মতো বাম দিকে প্লাস বাটন রাখা হয়েছে ফাইল আপলোড করার জন্য
-with st.container():
-    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+# ৩. জিমিনি স্টাইল বাটন লেআউট (স্ক্রিনশট ৬ অনুযায়ী)
+# এখানে আমরা কলাম ব্যবহার করে বাটনগুলো সাজাবো
+col_left_1, col_left_2, col_mid, col_right_1, col_right_2, col_right_3 = st.columns([0.5, 0.5, 5, 1, 0.5, 0.5])
 
-prompt = st.chat_input("Ask Universal AI...")
+with col_left_1:
+    st.button("➕", help="Upload Files")
+
+with col_left_2:
+    st.button("🎨", help="Gems")
+
+with col_right_1:
+    st.button("⚡ Fast", type="secondary")
+
+with col_right_2:
+    st.button("🎤", help="Voice Input")
+
+with col_right_3:
+    st.button("📊", help="Audio Wave")
+
+# ৪. চ্যাট ইনপুট
+prompt = st.chat_input("Ask Gemini")
 
 if prompt:
-    # ইউজারের মেসেজ সেভ করা
+    # ইউজারের প্রশ্ন দেখানো
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # এআই-এর রেসপন্স (পৃথিবীর যেকোনো প্রশ্নের উত্তর দিতে সক্ষম)
+    # এআই-এর উত্তর জেনারেশন
     with st.chat_message("assistant"):
-        with st.spinner("Processing..."):
-            try:
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                # সিস্টেম ইনস্ট্রাকশন যেখানে তোমাকে মেকার হিসেবে চেনে
-                sys_prompt = "You are 'Universal AI', an advanced knowledge engine built by Shubhankar. Answer accurately like Gemini."
-                
-                if uploaded_file:
-                    img = Image.open(uploaded_file)
-                    response = model.generate_content([f"{sys_prompt}\nUser: {prompt}", img])
-                else:
-                    response = model.generate_content(f"{sys_prompt}\nUser: {prompt}")
-                
-                st.markdown(response.text)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-            except Exception as e:
-                st.error("Connection Error! তোমার ইন্টারনেট অথবা এপিআই কি চেক করো।")
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            st.error("সার্ভারে সমস্যা হচ্ছে। অনুগ্রহ করে একটু পর চেষ্টা করো।")
 
-st.markdown("---")
-st.caption("<center>© 2026 Developed by Shubhankar | Powered by Universal AI</center>", unsafe_allow_html=True)
+# সাইডবার সেটিংস (স্ক্রিনশট ৫ অনুযায়ী)
+with st.sidebar:
+    st.markdown("### Recent Chats")
+    st.write("✨ তোমাকে কোন কোম্পানি বানিয়েছে...")
+    st.write("🚁 এরকম দুটো মোটর দিয়ে কি ড্রোন...")
+    st.markdown("---")
+    st.button("➕ New chat", use_container_width=True)
