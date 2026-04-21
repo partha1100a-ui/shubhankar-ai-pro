@@ -2,87 +2,80 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# ১. অরিজিনাল জিমিনি লুকের জন্য সেটিংস
+# ১. জিমিনি স্টাইল সেটিংস
 st.set_page_config(page_title="Gemini", page_icon="💠", layout="wide")
 
-# এপিআই কি সরাসরি সেট করা (তোমার দেওয়া কি)
+# এপিআই কি সরাসরি কোডে সেট করা হলো
 genai.configure(api_key="AIzaSyAlK9KDydACqvDM9iS3sr57RxuLbO-6PBw")
 
-# CSS দিয়ে বাটন এবং টেক্সট একদম জিমিনির মতো সাজানো
+# ২. জিমিনির মতো ক্লিন এবং সাদা ওয়ালপেপার ডিজাইন (CSS)
 st.markdown("""
     <style>
-    /* ব্যাকগ্রাউন্ড সাদা এবং টেক্সট জিমিনি স্টাইল */
     .stApp { background-color: #ffffff; color: #1f1f1f; }
     
-    /* গ্রিটিং টেক্সট (Hi) */
-    .hi-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 30vh;
+    /* জিমিনি স্টাইল বড় গ্রিটিং টেক্সট */
+    .greeting-box {
+        text-align: center;
+        margin-top: 100px;
         font-family: 'Google Sans', sans-serif;
     }
     .hi-text { font-size: 56px; font-weight: 500; color: #444746; }
-    .sub-text { font-size: 56px; font-weight: 500; color: #b7b7b7; margin-top: -15px; }
+    .start-text { font-size: 56px; font-weight: 500; color: #d0d0d0; margin-top: -15px; }
 
-    /* চ্যাট ইনপুট বক্স ও বাটন (Fixed at bottom) */
+    /* চ্যাট ইনপুট বক্স জিমিনি স্টাইল */
     .stChatInputContainer {
-        border-radius: 30px !important;
+        border-radius: 35px !important;
         border: 1px solid #c4c7c5 !important;
         background-color: #f0f4f9 !important;
-        padding-left: 10px !important;
     }
     
-    /* সাইডবার সেটিংস */
+    /* সাইডবার হাইড বা মডিফাই */
     [data-testid="stSidebar"] { background-color: #f0f4f8; }
-    
-    /* লুকানোর জন্য বাড়তি কিছু জিনিস */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# ২. মেইন স্ক্রিন গ্রিটিং (Screenshot 4 অনুযায়ী)
+# ৩. জিমিনি হোম স্ক্রিন (শুধু 'Hi' থাকবে)
 st.markdown("""
-    <div class='hi-container'>
+    <div class='greeting-box'>
         <div class='hi-text'>Hi</div>
-        <div class='sub-text'>Where should we start?</div>
+        <div class='start-text'>Where should we start?</div>
     </div>
     """, unsafe_allow_html=True)
 
-# ৩. বাটন লেআউট (Screenshot 6 অনুযায়ী - ইনপুটের ঠিক পাশে)
-# এখানে কলাম ব্যবহার করে বাটনগুলো এক সারিতে আনা হয়েছে
-col1, col2, col3, col4, col5 = st.columns([0.5, 0.5, 7, 0.5, 0.5])
-
-with col1:
-    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
-with col2:
-    st.button("💎", help="Gems", key="gems")
-
-# ৪. চ্যাট সেশন
+# ৪. সেশন স্টেট (মেসেজ সেভ রাখা)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# চ্যাট স্ক্রিনে আগের মেসেজগুলো দেখানো
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৫. চ্যাট ইনপুট এবং ডানদিকের বাটন
-with col3:
-    prompt = st.chat_input("Ask Gemini")
+# ৫. জিমিনি বাটন লেআউট (ইনপুট বক্সের বাম ও ডান পাশে)
+col_plus, col_gems, col_space, col_mic, col_cam = st.columns([0.5, 0.5, 7, 0.5, 0.5])
 
-with col4:
-    st.button("🎤", help="Voice", key="mic")
-with col5:
-    st.button("📷", help="Camera", key="cam")
+with col_plus:
+    # প্লাস (+) বাটন দিয়ে ফাইল আপলোড
+    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+with col_gems:
+    st.button("💎") # জিমিনির জেমস বাটন
 
-# ৬. এআই লজিক
+with col_mic:
+    st.button("🎤") # মাইক
+
+with col_cam:
+    st.button("📷") # ক্যামেরা
+
+# ৬. চ্যাট ইনপুট
+prompt = st.chat_input("Ask Gemini")
+
 if prompt:
+    # ইউজার মেসেজ
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # এআই-এর উত্তর (গুগল জেমিনি মডেল)
     with st.chat_message("assistant"):
         try:
             model = genai.GenerativeModel('gemini-1.5-flash')
@@ -95,11 +88,9 @@ if prompt:
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except:
-            st.error("Connection Error! API Key বা ইন্টারনেট চেক করো।")
+            st.error("Connection Error! দয়া করে ইন্টারনেট কানেকশন চেক করো।")
 
-# ৭. সাইডবার (Screenshot 5 অনুযায়ী)
+# সাইডবার সেটিংস
 with st.sidebar:
     st.markdown("### Recent")
     st.button("➕ New chat", use_container_width=True)
-    st.markdown("---")
-    st.caption("✨ Developed by Shubhankar")
