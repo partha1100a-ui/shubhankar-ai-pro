@@ -3,24 +3,20 @@ import google.generativeai as genai
 from PIL import Image
 
 # ১. জিমিনি স্টাইল সেটিংস
-st.set_page_config(page_title="Gemini", page_icon="💠", layout="wide")
+st.set_page_config(page_title="Gemini", page_icon="💠", layout="centered")
 
-# এপিআই কি সরাসরি কোডে সেট করা হলো
-genai.configure(api_key="AIzaSyAlK9KDydACqvDM9iS3sr57RxuLbO-6PBw")
+# তোমার নতুন এপিআই কি সরাসরি সেট করা হলো
+genai.configure(api_key="AIzaSyD-_0P0GiGybr_GFfb7cWBrGhZE_cmMfS8")
 
-# ২. জিমিনির মতো ক্লিন এবং সাদা ওয়ালপেপার ডিজাইন (CSS)
+# ২. জিমিনি লুকের জন্য প্রিমিয়াম CSS (বাটনগুলো এক লাইনে রাখার জন্য)
 st.markdown("""
     <style>
-    .stApp { background-color: #ffffff; color: #1f1f1f; }
+    .stApp { background-color: #ffffff; }
     
-    /* জিমিনি স্টাইল বড় গ্রিটিং টেক্সট */
-    .greeting-box {
-        text-align: center;
-        margin-top: 100px;
-        font-family: 'Google Sans', sans-serif;
-    }
-    .hi-text { font-size: 56px; font-weight: 500; color: #444746; }
-    .start-text { font-size: 56px; font-weight: 500; color: #d0d0d0; margin-top: -15px; }
+    /* গ্রিটিং বক্স */
+    .hi-box { text-align: center; margin-top: 60px; font-family: 'Google Sans', sans-serif; }
+    .hi-main { font-size: 52px; font-weight: 500; color: #444746; }
+    .hi-sub { font-size: 52px; font-weight: 500; color: #d0d0d0; margin-top: -15px; }
 
     /* চ্যাট ইনপুট বক্স জিমিনি স্টাইল */
     .stChatInputContainer {
@@ -29,53 +25,58 @@ st.markdown("""
         background-color: #f0f4f9 !important;
     }
     
-    /* সাইডবার হাইড বা মডিফাই */
-    [data-testid="stSidebar"] { background-color: #f0f4f8; }
+    /* বাটনগুলোকে ছোট ও ক্লিন করা */
+    .stButton>button {
+        border: none !important;
+        background-color: transparent !important;
+        font-size: 22px !important;
+        color: #444746 !important;
+        padding: 0px !important;
+    }
+    
+    /* কলামের অ্যালাইনমেন্ট ঠিক করা */
+    div[data-testid="column"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# ৩. জিমিনি হোম স্ক্রিন (শুধু 'Hi' থাকবে)
-st.markdown("""
-    <div class='greeting-box'>
-        <div class='hi-text'>Hi</div>
-        <div class='start-text'>Where should we start?</div>
-    </div>
-    """, unsafe_allow_html=True)
+# ৩. মেইন স্ক্রিন গ্রিটিং
+st.markdown("<div class='hi-box'><div class='hi-main'>Hi</div><div class='hi-sub'>Where should we start?</div></div>", unsafe_allow_html=True)
 
-# ৪. সেশন স্টেট (মেসেজ সেভ রাখা)
+# ৪. বাটন প্যানেল (৫টি কলামে সাজানো যাতে এক লাইনে থাকে)
+c1, c2, c3, c4, c5 = st.columns([0.6, 0.6, 7, 0.6, 0.6])
+
+with c1:
+    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+with c2:
+    st.button("💎")
+
+# সেশন স্টেট (মেসেজ স্টোর করা)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# চ্যাট স্ক্রিনে আগের মেসেজগুলো দেখানো
+# চ্যাট স্ক্রিন প্রদর্শন
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৫. জিমিনি বাটন লেআউট (ইনপুট বক্সের বাম ও ডান পাশে)
-col_plus, col_gems, col_space, col_mic, col_cam = st.columns([0.5, 0.5, 7, 0.5, 0.5])
+with c3:
+    prompt = st.chat_input("Ask Gemini")
 
-with col_plus:
-    # প্লাস (+) বাটন দিয়ে ফাইল আপলোড
-    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
-with col_gems:
-    st.button("💎") # জিমিনির জেমস বাটন
+with c4:
+    st.button("🎤")
+with c5:
+    st.button("📷")
 
-with col_mic:
-    st.button("🎤") # মাইক
-
-with col_cam:
-    st.button("📷") # ক্যামেরা
-
-# ৬. চ্যাট ইনপুট
-prompt = st.chat_input("Ask Gemini")
-
+# ৫. এআই রেসপন্স লজিক
 if prompt:
-    # ইউজার মেসেজ
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # এআই-এর উত্তর (গুগল জেমিনি মডেল)
     with st.chat_message("assistant"):
         try:
             model = genai.GenerativeModel('gemini-1.5-flash')
@@ -87,10 +88,10 @@ if prompt:
             
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except:
-            st.error("Connection Error! দয়া করে ইন্টারনেট কানেকশন চেক করো।")
+        except Exception as e:
+            st.error("API-তে সমস্যা হচ্ছে। অনুগ্রহ করে কি-টি আবার চেক করো।")
 
-# সাইডবার সেটিংস
+# সাইডবার
 with st.sidebar:
     st.markdown("### Recent")
     st.button("➕ New chat", use_container_width=True)
