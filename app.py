@@ -1,124 +1,96 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import io
 
-# ১. জিমিনি স্টাইল পিওর ব্ল্যাক ইন্টারফেস সেটিংস
-st.set_page_config(page_title="Gemini", page_icon="🧠", layout="wide")
+# ১. জিমিনি স্টাইল সেটিংস (ক্লিন ও সিম্পল)
+st.set_page_config(page_title="Universal AI", page_icon="✨", layout="wide")
 
+# সিএসএস দিয়ে জিমিনির মতো লুক তৈরি
 st.markdown("""
     <style>
-    /* পিওর ব্ল্যাক ব্যাকগ্রাউন্ড এবং হোয়াইট টেক্সট */
-    .stApp { background-color: #000000; color: #ffffff; font-family: 'Google Sans', sans-serif; }
-    [data-testid="stSidebar"] { background-color: #050505; border-right: 1px solid #333; }
+    .stApp { background-color: #ffffff; color: #000000; }
     
-    /* জিমিনি স্টাইল টাইটেল ও হেডার */
-    .stHeader { color: #ffffff !important; }
-    
-    /* স্মার্ট চ্যাট ইনপুট বক্স (জিমিনি স্টাইল) */
+    /* জিমিনি স্টাইল চ্যাট ইনপুট বক্স */
     .stChatInputContainer {
-        border-radius: 30px !important;
-        border: 1px solid #444 !important;
-        background-color: #0a0a0a !important;
-        padding: 5px 15px !important;
+        border-radius: 50px !important;
+        border: 1px solid #e0e0e0 !important;
+        background-color: #f0f4f9 !important;
     }
-    .stChatInputContainer textarea { color: #ffffff !important; }
-
-    /* মেসেজ বাব্বলস (ডার্ক থিম) */
-    .stChatMessage.user { background-color: #004a77 !important; border-radius: 15px; }
-    .stChatMessage.assistant { background-color: #1a1a1a !important; border-radius: 15px; }
     
-    /* গোল আইকন */
-    .stAvatar { border-radius: 50%; }
-    
-    /* আইকন কালার */
-    .stIcon { color: #aaa !important; }
+    /* লোগো ও টাইটেল স্টাইল */
+    .logo-text {
+        font-family: 'Google Sans', sans-serif;
+        font-size: 30px;
+        font-weight: 500;
+        color: #1a73e8; /* নীল কালার */
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# ২. এপিআই কানেকশন
+# ২. এপিআই কানেকশন (সহজ পদ্ধতি)
 if "GOOGLE_API_KEY" in st.secrets:
-    try:
-        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    except:
-        st.error("API configuration error.")
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 else:
-    st.error("Missing GOOGLE_API_KEY in Secrets.")
+    st.error("Secrets-এ GOOGLE_API_KEY যোগ করো।")
 
-# ৩. সাইডবার (স্ক্রিনশট ১১ অনুযায়ী হিস্ট্রি ও সেটিংস)
+# ৩. সাইডবার (শুধু নতুন চ্যাট অপশন)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 with st.sidebar:
-    st.write("## 📄 Chats")
+    st.markdown("<h2 style='color:#1a73e8;'>Universal AI</h2>", unsafe_allow_html=True)
     if st.button("➕ New Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
-    st.markdown("---")
-    
-    st.write("### Recent Conversations")
-    for msg in st.session_state.messages[-6:]:
-        if msg["role"] == "user":
-            st.caption(f"💬 {msg['content'][:25]}...")
-    st.markdown("---")
-    st.write("Settings | Help")
 
-# ৪. মেইন চ্যাট ইন্টারফেস (পুরো জিমিনি লুক)
-col1, col2, col3 = st.columns([1,8,1])
-with col2:
-    st.markdown("<h1 style='text-align:center; font-weight:800; font-size:40px; color:#ffffff;'>Gemini</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#aaa;'>How can I help you today?</p>", unsafe_allow_html=True)
+# ৪. মেইন স্ক্রিন (নীল স্টারের লোগো ও নাম)
+# এখানে জিমিনির স্টারের বদলে তোমার জন্য একটি সুন্দর নীল স্টারের লোগো দেওয়া হয়েছে
+st.markdown("""
+    <div class='logo-text'>
+        <span style='font-size: 40px;'>💠</span> Universal AI
+    </div>
+    <p style='color: #5f6368; font-size: 18px;'>How can I help you today?</p>
+    """, unsafe_allow_html=True)
 
-# আগের চ্যাটগুলো দেখানো
+# ৫. চ্যাট হিস্ট্রি দেখানো
 for message in st.session_state.messages:
-    role = "user" if message["role"] == "user" else "assistant"
-    with st.chat_message(role):
+    with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৫. জিমিনি স্টাইল চ্যাট ইনপুট ও বাটন লেআউট (স্ক্রিনশট ১০ অনুযায়ী)
-# বাম দিকে প্লাস (+) বাটন, ডান দিকে ক্যামেরা এবং মাইক
-col1, col2, col3, col4 = st.columns([1,7,1,1])
+# ৬. প্লাস বাটন ও চ্যাট ইনপুট (একদম সিম্পল)
+# জিমিনির মতো বাম দিকে প্লাস বাটন রাখা হয়েছে ফাইল আপলোড করার জন্য
+with st.container():
+    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
 
-with col1:
-    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed", help="Upload image/file")
+prompt = st.chat_input("Ask Universal AI...")
 
-with col2:
-    prompt = st.chat_input("Ask Gemini")
-
-with col3:
-    if st.button("📷", help="Camera"):
-        st.toast("ক্যামেরা ওপেন হচ্ছে... (এই ফিচারটি ব্রাউজারের অনুমতি সাপেক্ষ)")
-
-with col4:
-    if st.button("🎤", help="Voice input"):
-        st.toast("মাইক্রোফোন অন হচ্ছে... (কথা বলা শুরু করুন)")
-
-# ৬. চ্যাট প্রসেসিং
 if prompt:
-    # ইউজারের প্রশ্ন
+    # ইউজারের মেসেজ সেভ করা
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # এআই উত্তর জেনারেশন (জিমিনির মতো নিখুঁত)
+    # এআই-এর রেসপন্স (পৃথিবীর যেকোনো প্রশ্নের উত্তর দিতে সক্ষম)
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
+        with st.spinner("Processing..."):
             try:
-                # মডার্ন জেমিনি ১.৫ ফ্ল্যাশ মডেল ব্যবহার
                 model = genai.GenerativeModel('gemini-1.5-flash')
-                sys_msg = "You are 'Gemini', developed by Shubhankar. Provide accurate, professional, and detailed answers like a world-class expert. Answer in any language used by the user."
+                # সিস্টেম ইনস্ট্রাকশন যেখানে তোমাকে মেকার হিসেবে চেনে
+                sys_prompt = "You are 'Universal AI', an advanced knowledge engine built by Shubhankar. Answer accurately like Gemini."
                 
                 if uploaded_file:
                     img = Image.open(uploaded_file)
-                    response = model.generate_content([f"{sys_msg}\nUser: {prompt}", img])
+                    response = model.generate_content([f"{sys_prompt}\nUser: {prompt}", img])
                 else:
-                    response = model.generate_content(f"{sys_msg}\nUser: {prompt}")
+                    response = model.generate_content(f"{sys_prompt}\nUser: {prompt}")
                 
-                final_res = response.text
-                st.markdown(final_res)
-                st.session_state.messages.append({"role": "assistant", "content": final_res})
-            except:
-                st.error("AI কানেক্ট হতে পারছে না। তোমার এপিআই কি (API Key) বা ইন্টারনেট কানেকশন চেক করো।")
+                st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            except Exception as e:
+                st.error("Connection Error! তোমার ইন্টারনেট অথবা এপিআই কি চেক করো।")
 
 st.markdown("---")
-st.caption("<center>© 2026 Developed by Shubhankar</center>", unsafe_allow_html=True)
+st.caption("<center>© 2026 Developed by Shubhankar | Powered by Universal AI</center>", unsafe_allow_html=True)
