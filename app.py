@@ -1,84 +1,100 @@
 import streamlit as st
 import google.generativeai as genai
+from PIL import Image
 
-# ১. জিমিনি অরিজিনাল লুক সেটআপ
+# ১. জিমিনি UI থিম সেটিংস
 st.set_page_config(page_title="Gemini", page_icon="🌐", layout="wide")
 
-# তোমার দেওয়া এপিআই কি সরাসরি সেট করা হলো
-genai.configure(api_key="AIzaSyAlK9KDydACqvDM9iS3sr57RxuLbO-6PBw")
+# এপিআই কি কনফিগারেশন (Secrets থেকে সরাসরি)
+if "GOOGLE_API_KEY" in st.secrets:
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+else:
+    st.error("Please add GOOGLE_API_KEY to your Streamlit Secrets.")
 
-# CSS দিয়ে জিমিনির মতো বাটন ও ইন্টারফেস তৈরি
+# ২. ডিকশনারি বাটন এবং জিমিনি ইন্টারফেসের জন্য CSS
 st.markdown("""
     <style>
+    /* মেইন ব্যাকগ্রাউন্ড */
     .stApp { background-color: #f8fafd; color: #1f1f1f; }
     
-    /* জিমিনি স্টাইল হেডার */
-    .header-text { font-family: 'Google Sans', sans-serif; font-size: 24px; color: #444746; text-align: center; margin-top: 20px; }
+    /* টাইটেল এবং গ্রিটিং */
+    .greeting-container { text-align: center; margin-top: 80px; }
+    .hi-text { font-size: 40px; font-weight: 500; color: #444746; }
+    .sub-text { font-size: 40px; font-weight: 500; color: #b7b7b7; margin-top: -10px; }
+
+    /* চ্যাট বক্স ডিজাইন */
+    .stChatInputContainer { border-radius: 30px !important; border: 1px solid #c4c7c5 !important; background-color: #ffffff !important; }
     
-    /* চ্যাট ইনপুট বক্সের বাটনগুলোর ডিজাইন */
-    .stChatInputContainer { border-radius: 28px !important; border: 1px solid #c4c7c5 !important; background-color: #ffffff !important; }
+    /* জিমিনি আইকন বাটন লেআউট */
+    .icon-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .left-icons { display: flex; gap: 10px; }
+    .right-icons { display: flex; gap: 15px; align-items: center; }
     
-    /* নিচের বাটন প্যানেল জিমিনির মতো */
-    .button-container { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #ffffff; border-radius: 30px; margin-top: -60px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    /* সাইডবার লুক */
+    [data-testid="stSidebar"] { background-color: #f0f4f8; }
     </style>
     """, unsafe_allow_html=True)
 
-# ২. মেইন স্ক্রিন টাইটেল (স্ক্রিনশট ৪ অনুযায়ী)
-st.markdown("<div class='header-text'>Gemini</div>", unsafe_allow_html=True)
-st.markdown("<h2 style='text-align:center; font-weight:400; margin-top:50px;'>Hi Shubhankar</h2>", unsafe_allow_html=True)
-st.markdown("<h1 style='text-align:center; font-weight:500; margin-top:-10px; color:#444746;'>Where should we start?</h1>", unsafe_allow_html=True)
+# ৩. ডায়নামিক গ্রিটিং (শুধু "Hi" থাকবে)
+st.markdown("""
+    <div class='greeting-container'>
+        <div class='hi-text'>Hi</div>
+        <div class='sub-text'>Where should we start?</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# চ্যাট হিস্ট্রি রাখার জন্য সেশন স্টেট
+# ৪. চ্যাট সেশন হ্যান্ডলিং
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# চ্যাট মেসেজগুলো দেখানো
+# চ্যাট স্ক্রিন প্রদর্শন
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৩. জিমিনি স্টাইল বাটন লেআউট (স্ক্রিনশট ৬ অনুযায়ী)
-# এখানে আমরা কলাম ব্যবহার করে বাটনগুলো সাজাবো
-col_left_1, col_left_2, col_mid, col_right_1, col_right_2, col_right_3 = st.columns([0.5, 0.5, 5, 1, 0.5, 0.5])
+# ৫. বাটন ইন্টারফেস (জিমিনি ডিটো লেআউট)
+# কলাম দিয়ে বাটনগুলো সাজানো হয়েছে (প্লাস, সেটিংস, ফাস্ট, মাইক, ওয়েভ)
+col_l1, col_l2, col_space, col_r1, col_r2, col_r3 = st.columns([0.5, 0.5, 5, 1, 0.5, 0.5])
 
-with col_left_1:
-    st.button("➕", help="Upload Files")
+with col_l1:
+    uploaded_file = st.file_uploader("➕", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+with col_l2:
+    st.button("⚙️", help="Settings")
 
-with col_left_2:
-    st.button("🎨", help="Gems")
-
-with col_right_1:
-    st.button("⚡ Fast", type="secondary")
-
-with col_right_2:
+with col_r1:
+    st.markdown("<span style='background:#eef2f6; padding:5px 12px; border-radius:15px; font-size:14px;'>⚡ Fast</span>", unsafe_allow_html=True)
+with col_r2:
     st.button("🎤", help="Voice Input")
+with col_r3:
+    st.button("📊", help="Audio Analysis")
 
-with col_right_3:
-    st.button("📊", help="Audio Wave")
-
-# ৪. চ্যাট ইনপুট
+# ৬. প্রম্পট এবং এআই রেসপন্স
 prompt = st.chat_input("Ask Gemini")
 
 if prompt:
-    # ইউজারের প্রশ্ন দেখানো
+    # ইউজারের মেসেজ
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # এআই-এর উত্তর জেনারেশন
+    # এআই-এর উত্তর
     with st.chat_message("assistant"):
         try:
             model = genai.GenerativeModel('gemini-1.5-flash')
-            response = model.generate_content(prompt)
+            if uploaded_file:
+                img = Image.open(uploaded_file)
+                response = model.generate_content([prompt, img])
+            else:
+                response = model.generate_content(prompt)
+            
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error("সার্ভারে সমস্যা হচ্ছে। অনুগ্রহ করে একটু পর চেষ্টা করো।")
+            st.error("Connection Error! তোমার ইন্টারনেট অথবা এপিআই কি চেক করো।")
 
-# সাইডবার সেটিংস (স্ক্রিনশট ৫ অনুযায়ী)
+# ৭. সাইডবার (রিসেন্ট চ্যাট লিস্ট)
 with st.sidebar:
-    st.markdown("### Recent Chats")
-    st.write("✨ তোমাকে কোন কোম্পানি বানিয়েছে...")
-    st.write("🚁 এরকম দুটো মোটর দিয়ে কি ড্রোন...")
-    st.markdown("---")
+    st.markdown("### Recent")
     st.button("➕ New chat", use_container_width=True)
+    st.markdown("---")
+    st.caption("✨ Developed by Shubhankar")
